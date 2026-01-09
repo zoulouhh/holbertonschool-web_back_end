@@ -2,35 +2,34 @@ const fs = require('fs');
 
 function countStudents(path) {
   let data;
+
   try {
-    data = fs.readFileSync(path, 'utf8');
-  } catch (err) {
+    data = fs.readFileSync(path, 'utf-8');
+  } catch (e) {
     throw new Error('Cannot load the database');
   }
 
-  const lines = data.split('\n');
-  const students = lines.filter((line) => line && line !== lines[0]);
+  const lines = data
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line);
+
+  const students = lines.slice(1);
   console.log(`Number of students: ${students.length}`);
 
   const fields = {};
-  const columns = lines[0].split(',');
-  const firstNamePos = columns.indexOf('firstname');
-  const fieldPos = columns.indexOf('field');
 
-  for (const student of students) {
-    const studentData = student.split(',');
-    const field = studentData[fieldPos];
-    const firstName = studentData[firstNamePos];
-
+  students.forEach((line) => {
+    const [firstname, , , field] = line.split(',');
     if (!fields[field]) fields[field] = [];
-    fields[field].push(firstName);
-  }
+    fields[field].push(firstname);
+  });
 
-  for (const field in fields) {
-    if (Object.prototype.hasOwnProperty.call(fields, field)) {
-      console.log(`Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`);
-    }
-  }
+  Object.entries(fields).forEach(([field, list]) => {
+    console.log(
+      `Number of students in ${field}: ${list.length}. List: ${list.join(', ')}`
+    );
+  });
 }
 
 module.exports = countStudents;
