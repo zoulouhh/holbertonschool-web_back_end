@@ -1,23 +1,33 @@
 import fs from 'fs';
 
-export const readDatabase = (path) => new Promise((resolve, reject) => {
-  fs.readFile(path, 'utf-8', (err, data) => {
-    if (err) return reject(err);
+const readDatabase = (path) => new Promise((resolve, reject) => {
+  fs.readFile(path, 'utf8', (err, data) => {
+    if (err) {
+      reject(err);
+      return;
+    }
+    const lines = data.toString().split('\n');
+    let students = lines.filter((line) => line.trim() !== '');
 
-    const lines = data
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean);
+    // Remove header
+    students = students.slice(1);
 
-    const students = lines.slice(1);
     const fields = {};
 
-    students.forEach((line) => {
-      const [firstname, , , field] = line.split(',');
-      if (!fields[field]) fields[field] = [];
-      fields[field].push(firstname);
-    });
+    for (const line of students) {
+      const student = line.split(',');
+      if (student.length >= 4) {
+        const field = student[3];
+        const firstname = student[0];
 
-    return resolve(fields);
+        if (!fields[field]) {
+          fields[field] = [];
+        }
+        fields[field].push(firstname);
+      }
+    }
+    resolve(fields);
   });
 });
+
+export default readDatabase;
