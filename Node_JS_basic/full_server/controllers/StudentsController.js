@@ -7,13 +7,11 @@ class StudentsController {
     readDatabase(database)
       .then((fields) => {
         let response = 'This is the list of our students';
-
         Object.keys(fields)
           .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
           .forEach((field) => {
             response += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
           });
-
         res.status(200).send(response);
       })
       .catch(() => {
@@ -41,4 +39,3 @@ class StudentsController {
 }
 
 export default StudentsController;
-
