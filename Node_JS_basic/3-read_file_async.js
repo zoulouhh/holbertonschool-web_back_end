@@ -1,39 +1,39 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 
-const countStudents = (path) => new Promise((resolve, reject) => {
-  fs.readFile(path, 'utf8', (err, data) => {
-    if (err) {
-      reject(new Error('Cannot load the database'));
-      return;
-    }
-    const lines = data.toString().split('\n');
-    let students = lines.filter((line) => line.trim() !== '');
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8')
+      .then((data) => {
+        const lines = data.split('\n');
+        const students = lines.filter((line) => line && line !== lines[0]);
+        console.log(`Number of students: ${students.length}`);
 
-    // Remove header
-    students = students.slice(1);
+        const fields = {};
+        const columns = lines[0].split(',');
+        const firstNamePos = columns.indexOf('firstname');
+        const fieldPos = columns.indexOf('field');
 
-    const fields = {};
+        for (const student of students) {
+          const studentData = student.split(',');
+          const field = studentData[fieldPos];
+          const firstName = studentData[firstNamePos];
 
-    for (const line of students) {
-      const student = line.split(',');
-      if (student.length >= 4) {
-        const field = student[3];
-        const firstname = student[0];
-
-        if (!fields[field]) {
-          fields[field] = [];
+          if (!fields[field]) fields[field] = [];
+          fields[field].push(firstName);
         }
-        fields[field].push(firstname);
-      }
-    }
 
-    console.log(`Number of students: ${students.length}`);
+        for (const field in fields) {
+          if (Object.prototype.hasOwnProperty.call(fields, field)) {
+            console.log(`Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`);
+          }
+        }
 
-    for (const [field, firstnames] of Object.entries(fields)) {
-      console.log(`Number of students in ${field}: ${firstnames.length}. List: ${firstnames.join(', ')}`);
-    }
-    resolve();
+        resolve();
+      })
+      .catch(() => {
+        reject(new Error('Cannot load the database'));
+      });
   });
-});
+}
 
 module.exports = countStudents;
